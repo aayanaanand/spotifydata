@@ -13,6 +13,7 @@ cur = conn.cursor()
 #create tables
 cur.execute('DROP TABLE IF EXISTS Playlists')
 cur.execute('DROP TABLE IF EXISTS Tracks')
+cur.execute('DROP TABLE IF EXISTS Artist')
 cur.executescript('''
     CREATE TABLE Playlists (
         id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
@@ -24,6 +25,11 @@ cur.executescript('''
         id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
         title   TEXT UNIQUE,
         artist  TEXT,
+        album   TEXT
+    );
+    CREATE TABLE Artist (
+        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        title   TEXT UNIQUE,
         album   TEXT
     )
 ''')
@@ -62,6 +68,9 @@ for entry in json_data["playlists"]:
             if artist.startswith(selectedartist):
                 artistcount = artistcount + 1
                 artisttracks.append(title)
+
+                cur.execute('''INSERT OR IGNORE INTO Artist (title, album) VALUES ( ? , ?)''', (title,album) )
+                cur.execute('SELECT id FROM Artist WHERE title = ? AND album = ?' , (title,album))
 
             index = index+1
             trackcount = trackcount+1
