@@ -1,5 +1,9 @@
 import json
 import sqlite3
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 #make a connection to the database
 conn = sqlite3.connect('spotifydata.sqlite')
@@ -25,11 +29,16 @@ cur.executescript('''
 ''')
 
 count = 0
+artistcount = 0
+trackcount = 0;
+artisttracks = list()
 
 #read json data
 fhandle = open('Playlist1.json')
 str_data = fhandle.read()
 json_data = json.loads(str_data)
+
+selectedartist = input("Choose an Artist (case sensitive): ")
 
 #each entry = 1 playlist (should be 109 playlists)
 for entry in json_data["playlists"]:
@@ -50,7 +59,12 @@ for entry in json_data["playlists"]:
             cur.execute('''INSERT OR IGNORE INTO Tracks (title, artist, album) VALUES ( ?, ?, ?)''', (title, artist, album))
             cur.execute('SELECT id FROM Tracks WHERE title = ? AND artist = ? AND album = ?', (title, artist, album))
 
+            if artist.startswith(selectedartist):
+                artistcount = artistcount + 1
+                artisttracks.append(title)
+
             index = index+1
+            trackcount = trackcount+1
     except:
         title = "none"
         artist = "none"
@@ -63,4 +77,11 @@ for entry in json_data["playlists"]:
 
     print('-------------')
 
-print('Total Playlists: ', count)
+print('Artist Selected:', selectedartist)
+print('Total Playlists:', count)
+print('Total ' + selectedartist + ' Tracks:', artistcount)
+print('Percent of Tracks that are by ' + selectedartist + ':', str(np.round(artistcount/trackcount*100, 2)) + '%')
+print('Total Tracks:', trackcount)
+
+#plt.hist(artisttracks[:25])
+#plt.show()
